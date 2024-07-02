@@ -1,1 +1,68 @@
 
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
+
+     
+
+df=pd.read_csv('Random_movie_review.csv')
+     
+
+df.head()
+     
+text	label
+0	I always wrote this series off as being a comp...	0
+1	1st watched 12/7/2002 - 3 out of 10(Dir-Steve ...	0
+2	This movie was so poorly written and directed ...	0
+3	The most interesting thing about Miryang (Secr...	1
+4	when i first read about "berlin am meer" i did...	0
+
+df=df.drop('label',axis=1)
+     
+
+df
+     
+text
+0	I always wrote this series off as being a comp...
+1	1st watched 12/7/2002 - 3 out of 10(Dir-Steve ...
+2	This movie was so poorly written and directed ...
+3	The most interesting thing about Miryang (Secr...
+4	when i first read about "berlin am meer" i did...
+...	...
+4995	This is the kind of picture John Lassiter woul...
+4996	A MUST SEE! I saw WHIPPED at a press screening...
+4997	NBC should be ashamed. I wouldn't allow my chi...
+4998	This movie is a clumsy mishmash of various gho...
+4999	Formula movie about the illegitimate son of a ...
+5000 rows × 1 columns
+
+
+df.duplicated().sum()
+     
+5
+
+df=df.drop_duplicates()
+     
+
+df.info()
+     
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 5000 entries, 0 to 4999
+Data columns (total 1 columns):
+ #   Column  Non-Null Count  Dtype 
+---  ------  --------------  ----- 
+ 0   text    5000 non-null   object
+dtypes: object(1)
+memory usage: 39.2+ KB
+
+df.describe()
+
+     
+text
+count	4995
+unique	4995
+top	I always wrote this series off as being a comp...
+freq	1
