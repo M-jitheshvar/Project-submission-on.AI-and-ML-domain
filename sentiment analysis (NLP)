@@ -1,1 +1,777 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.7.10","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"none","dataSources":[{"sourceId":2782184,"sourceType":"datasetVersion","datasetId":1698522}],"dockerImageVersionId":30145,"isInternetEnabled":false,"language":"python","sourceType":"notebook","isGpuEnabled":false}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"import pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport re\nimport string\nimport nltk\nimport warnings\n%matplotlib inline\nwarnings.filterwarnings('ignore')","metadata":{"id":"BR61dYD1BzEa","execution":{"iopub.status.busy":"2024-07-30T13:50:49.219119Z","iopub.execute_input":"2024-07-30T13:50:49.219501Z","iopub.status.idle":"2024-07-30T13:50:50.904353Z","shell.execute_reply.started":"2024-07-30T13:50:49.219401Z","shell.execute_reply":"2024-07-30T13:50:50.903401Z"},"trusted":true},"execution_count":1,"outputs":[]},{"cell_type":"code","source":"df = pd.read_csv('../input/twitter-sentiments-analysis-nlp/Twitter Sentiments.csv')","metadata":{"id":"3CeCesU2B1q6","execution":{"iopub.status.busy":"2024-07-30T13:50:50.906064Z","iopub.execute_input":"2024-07-30T13:50:50.906326Z","iopub.status.idle":"2024-07-30T13:50:51.048284Z","shell.execute_reply.started":"2024-07-30T13:50:50.906294Z","shell.execute_reply":"2024-07-30T13:50:51.047450Z"},"trusted":true},"execution_count":2,"outputs":[]},{"cell_type":"code","source":"df.head()","metadata":{"id":"6OHph_XACEA5","outputId":"75a8a912-d47d-476a-8d74-bdb6edcbd82e","execution":{"iopub.status.busy":"2024-07-30T13:50:51.049402Z","iopub.execute_input":"2024-07-30T13:50:51.049649Z","iopub.status.idle":"2024-07-30T13:50:51.068049Z","shell.execute_reply.started":"2024-07-30T13:50:51.049616Z","shell.execute_reply":"2024-07-30T13:50:51.067144Z"},"trusted":true},"execution_count":3,"outputs":[{"execution_count":3,"output_type":"execute_result","data":{"text/plain":"   id  label                                              tweet\n0   1      0   @user when a father is dysfunctional and is s...\n1   2      0  @user @user thanks for #lyft credit i can't us...\n2   3      0                                bihday your majesty\n3   4      0  #model   i love u take with u all the time in ...\n4   5      0             factsguide: society now    #motivation","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>id</th>\n      <th>label</th>\n      <th>tweet</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>0</td>\n      <td>@user when a father is dysfunctional and is s...</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>0</td>\n      <td>@user @user thanks for #lyft credit i can't us...</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>0</td>\n      <td>bihday your majesty</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>0</td>\n      <td>#model   i love u take with u all the time in ...</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>0</td>\n      <td>factsguide: society now    #motivation</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"df['tweet']","metadata":{"id":"46b0hXXACFSH","outputId":"525f0165-cc86-4aad-aa60-46a8e5210aac","execution":{"iopub.status.busy":"2024-07-30T13:50:51.069909Z","iopub.execute_input":"2024-07-30T13:50:51.070173Z","iopub.status.idle":"2024-07-30T13:50:51.081241Z","shell.execute_reply.started":"2024-07-30T13:50:51.070141Z","shell.execute_reply":"2024-07-30T13:50:51.080423Z"},"trusted":true},"execution_count":4,"outputs":[{"execution_count":4,"output_type":"execute_result","data":{"text/plain":"0         @user when a father is dysfunctional and is s...\n1        @user @user thanks for #lyft credit i can't us...\n2                                      bihday your majesty\n3        #model   i love u take with u all the time in ...\n4                   factsguide: society now    #motivation\n                               ...                        \n31957    ate @user isz that youuu?ðððððð...\n31958      to see nina turner on the airwaves trying to...\n31959    listening to sad songs on a monday morning otw...\n31960    @user #sikh #temple vandalised in in #calgary,...\n31961                     thank you @user for you follow  \nName: tweet, Length: 31962, dtype: object"},"metadata":{}}]},{"cell_type":"code","source":"df['label'].value_counts()","metadata":{"id":"INxgPwzmCGwf","outputId":"a0ba79b4-d5e1-4d0a-b42b-78d9bf6326eb","execution":{"iopub.status.busy":"2024-07-30T13:50:51.082673Z","iopub.execute_input":"2024-07-30T13:50:51.083036Z","iopub.status.idle":"2024-07-30T13:50:51.096927Z","shell.execute_reply.started":"2024-07-30T13:50:51.082984Z","shell.execute_reply":"2024-07-30T13:50:51.096067Z"},"trusted":true},"execution_count":5,"outputs":[{"execution_count":5,"output_type":"execute_result","data":{"text/plain":"0    29720\n1     2242\nName: label, dtype: int64"},"metadata":{}}]},{"cell_type":"markdown","source":"#preprocessing the dataset","metadata":{"id":"9kNjgPVECN4n"}},{"cell_type":"code","source":"# removes pattern in the umput text\ndef remove_pattern(input_txt, pattern):\n    r = re.findall(pattern, input_txt)\n    for word in r:\n        input_txt = re.sub(word, \"\",input_txt)\n    return input_txt","metadata":{"id":"HHMvb6iHCSee","execution":{"iopub.status.busy":"2024-07-30T13:53:11.751266Z","iopub.execute_input":"2024-07-30T13:53:11.751580Z","iopub.status.idle":"2024-07-30T13:53:11.757681Z","shell.execute_reply.started":"2024-07-30T13:53:11.751542Z","shell.execute_reply":"2024-07-30T13:53:11.756569Z"},"trusted":true},"execution_count":34,"outputs":[]},{"cell_type":"code","source":"#remove twitter handels (@user)\ndf['clean_tweet'] = np.vectorize(remove_pattern)(df['tweet'],\"@[\\w]*\")\ndf.head()","metadata":{"id":"AJ7AW-xPCVcI","outputId":"7835ed6c-1882-4eb4-805a-fcafdd735851","execution":{"iopub.status.busy":"2024-07-30T13:50:51.130385Z","iopub.execute_input":"2024-07-30T13:50:51.130665Z","iopub.status.idle":"2024-07-30T13:50:51.309284Z","shell.execute_reply.started":"2024-07-30T13:50:51.130631Z","shell.execute_reply":"2024-07-30T13:50:51.308359Z"},"trusted":true},"execution_count":8,"outputs":[{"execution_count":8,"output_type":"execute_result","data":{"text/plain":"   id  label                                              tweet  \\\n0   1      0   @user when a father is dysfunctional and is s...   \n1   2      0  @user @user thanks for #lyft credit i can't us...   \n2   3      0                                bihday your majesty   \n3   4      0  #model   i love u take with u all the time in ...   \n4   5      0             factsguide: society now    #motivation   \n\n                                         clean_tweet  \n0    when a father is dysfunctional and is so sel...  \n1    thanks for #lyft credit i can't use cause th...  \n2                                bihday your majesty  \n3  #model   i love u take with u all the time in ...  \n4             factsguide: society now    #motivation  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>id</th>\n      <th>label</th>\n      <th>tweet</th>\n      <th>clean_tweet</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>0</td>\n      <td>@user when a father is dysfunctional and is s...</td>\n      <td>when a father is dysfunctional and is so sel...</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>0</td>\n      <td>@user @user thanks for #lyft credit i can't us...</td>\n      <td>thanks for #lyft credit i can't use cause th...</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>0</td>\n      <td>bihday your majesty</td>\n      <td>bihday your majesty</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>0</td>\n      <td>#model   i love u take with u all the time in ...</td>\n      <td>#model   i love u take with u all the time in ...</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>0</td>\n      <td>factsguide: society now    #motivation</td>\n      <td>factsguide: society now    #motivation</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"# remove special characters , number and punctuations\ndf['clean_tweet'] = df['clean_tweet'].str.replace(\"[^a-zA-Z#]\", \" \")\ndf.head()","metadata":{"id":"xhvrhTAtCWpX","outputId":"a3a8020a-612a-4926-b60d-b36c2fa10cf5","execution":{"iopub.status.busy":"2024-07-30T13:50:51.310565Z","iopub.execute_input":"2024-07-30T13:50:51.310892Z","iopub.status.idle":"2024-07-30T13:50:51.510291Z","shell.execute_reply.started":"2024-07-30T13:50:51.310858Z","shell.execute_reply":"2024-07-30T13:50:51.509465Z"},"trusted":true},"execution_count":9,"outputs":[{"execution_count":9,"output_type":"execute_result","data":{"text/plain":"   id  label                                              tweet  \\\n0   1      0   @user when a father is dysfunctional and is s...   \n1   2      0  @user @user thanks for #lyft credit i can't us...   \n2   3      0                                bihday your majesty   \n3   4      0  #model   i love u take with u all the time in ...   \n4   5      0             factsguide: society now    #motivation   \n\n                                         clean_tweet  \n0    when a father is dysfunctional and is so sel...  \n1    thanks for #lyft credit i can t use cause th...  \n2                                bihday your majesty  \n3  #model   i love u take with u all the time in ...  \n4             factsguide  society now    #motivation  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>id</th>\n      <th>label</th>\n      <th>tweet</th>\n      <th>clean_tweet</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>0</td>\n      <td>@user when a father is dysfunctional and is s...</td>\n      <td>when a father is dysfunctional and is so sel...</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>0</td>\n      <td>@user @user thanks for #lyft credit i can't us...</td>\n      <td>thanks for #lyft credit i can t use cause th...</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>0</td>\n      <td>bihday your majesty</td>\n      <td>bihday your majesty</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>0</td>\n      <td>#model   i love u take with u all the time in ...</td>\n      <td>#model   i love u take with u all the time in ...</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>0</td>\n      <td>factsguide: society now    #motivation</td>\n      <td>factsguide  society now    #motivation</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"#remove short words\ndf['clean_tweet'] = df['clean_tweet'].apply(lambda x: \" \".join([w for w in x.split() if len(w)>3]))\ndf.head()","metadata":{"id":"iqaTZIXLCaHH","outputId":"ee9cc56f-d1f9-4224-a34a-0616d302dc4c","execution":{"iopub.status.busy":"2024-07-30T13:50:51.513061Z","iopub.execute_input":"2024-07-30T13:50:51.513323Z","iopub.status.idle":"2024-07-30T13:50:51.633108Z","shell.execute_reply.started":"2024-07-30T13:50:51.513290Z","shell.execute_reply":"2024-07-30T13:50:51.632194Z"},"trusted":true},"execution_count":10,"outputs":[{"execution_count":10,"output_type":"execute_result","data":{"text/plain":"   id  label                                              tweet  \\\n0   1      0   @user when a father is dysfunctional and is s...   \n1   2      0  @user @user thanks for #lyft credit i can't us...   \n2   3      0                                bihday your majesty   \n3   4      0  #model   i love u take with u all the time in ...   \n4   5      0             factsguide: society now    #motivation   \n\n                                         clean_tweet  \n0  when father dysfunctional selfish drags kids i...  \n1  thanks #lyft credit cause they offer wheelchai...  \n2                                bihday your majesty  \n3                         #model love take with time  \n4                     factsguide society #motivation  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>id</th>\n      <th>label</th>\n      <th>tweet</th>\n      <th>clean_tweet</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>0</td>\n      <td>@user when a father is dysfunctional and is s...</td>\n      <td>when father dysfunctional selfish drags kids i...</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>0</td>\n      <td>@user @user thanks for #lyft credit i can't us...</td>\n      <td>thanks #lyft credit cause they offer wheelchai...</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>0</td>\n      <td>bihday your majesty</td>\n      <td>bihday your majesty</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>0</td>\n      <td>#model   i love u take with u all the time in ...</td>\n      <td>#model love take with time</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>0</td>\n      <td>factsguide: society now    #motivation</td>\n      <td>factsguide society #motivation</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"#individual words considered as tokens\ntokenized_tweet = df['clean_tweet'].apply(lambda x : x.split())\ntokenized_tweet.head()","metadata":{"id":"AiKv2tFiCcu3","outputId":"90a6c0d1-7d23-4cbf-e190-ce8f18fbdb18","execution":{"iopub.status.busy":"2024-07-30T13:50:51.634227Z","iopub.execute_input":"2024-07-30T13:50:51.634469Z","iopub.status.idle":"2024-07-30T13:50:51.685830Z","shell.execute_reply.started":"2024-07-30T13:50:51.634438Z","shell.execute_reply":"2024-07-30T13:50:51.684892Z"},"trusted":true},"execution_count":11,"outputs":[{"execution_count":11,"output_type":"execute_result","data":{"text/plain":"0    [when, father, dysfunctional, selfish, drags, ...\n1    [thanks, #lyft, credit, cause, they, offer, wh...\n2                              [bihday, your, majesty]\n3                     [#model, love, take, with, time]\n4                   [factsguide, society, #motivation]\nName: clean_tweet, dtype: object"},"metadata":{}}]},{"cell_type":"markdown","source":"#Exploratory Data Analysis","metadata":{"id":"pbTxPIBKCk7P"}}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "f5d1e1f2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:10.220224Z",
+     "iopub.status.busy": "2024-07-30T14:33:10.216550Z",
+     "iopub.status.idle": "2024-07-30T14:33:11.758142Z",
+     "shell.execute_reply": "2024-07-30T14:33:11.758664Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:49.219401Z"
+    },
+    "id": "BR61dYD1BzEa",
+    "papermill": {
+     "duration": 1.56533,
+     "end_time": "2024-07-30T14:33:11.758996",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:10.193666",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "import re\n",
+    "import string\n",
+    "import nltk\n",
+    "import warnings\n",
+    "%matplotlib inline\n",
+    "warnings.filterwarnings('ignore')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "c2511d60",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:11.784232Z",
+     "iopub.status.busy": "2024-07-30T14:33:11.783515Z",
+     "iopub.status.idle": "2024-07-30T14:33:11.906297Z",
+     "shell.execute_reply": "2024-07-30T14:33:11.906866Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:50.906294Z"
+    },
+    "id": "3CeCesU2B1q6",
+    "papermill": {
+     "duration": 0.1376,
+     "end_time": "2024-07-30T14:33:11.907070",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:11.769470",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "df = pd.read_csv('../input/twitter-sentiments-analysis-nlp/Twitter Sentiments.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "86819b23",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:11.936012Z",
+     "iopub.status.busy": "2024-07-30T14:33:11.935259Z",
+     "iopub.status.idle": "2024-07-30T14:33:11.947407Z",
+     "shell.execute_reply": "2024-07-30T14:33:11.947958Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.049616Z"
+    },
+    "id": "6OHph_XACEA5",
+    "outputId": "75a8a912-d47d-476a-8d74-bdb6edcbd82e",
+    "papermill": {
+     "duration": 0.031179,
+     "end_time": "2024-07-30T14:33:11.948148",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:11.916969",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>label</th>\n",
+       "      <th>tweet</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user when a father is dysfunctional and is s...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user @user thanks for #lyft credit i can't us...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>factsguide: society now    #motivation</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id  label                                              tweet\n",
+       "0   1      0   @user when a father is dysfunctional and is s...\n",
+       "1   2      0  @user @user thanks for #lyft credit i can't us...\n",
+       "2   3      0                                bihday your majesty\n",
+       "3   4      0  #model   i love u take with u all the time in ...\n",
+       "4   5      0             factsguide: society now    #motivation"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "331c4ceb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:11.982719Z",
+     "iopub.status.busy": "2024-07-30T14:33:11.981851Z",
+     "iopub.status.idle": "2024-07-30T14:33:11.985750Z",
+     "shell.execute_reply": "2024-07-30T14:33:11.985169Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.070141Z"
+    },
+    "id": "46b0hXXACFSH",
+    "outputId": "525f0165-cc86-4aad-aa60-46a8e5210aac",
+    "papermill": {
+     "duration": 0.024755,
+     "end_time": "2024-07-30T14:33:11.985895",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:11.961140",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0         @user when a father is dysfunctional and is s...\n",
+       "1        @user @user thanks for #lyft credit i can't us...\n",
+       "2                                      bihday your majesty\n",
+       "3        #model   i love u take with u all the time in ...\n",
+       "4                   factsguide: society now    #motivation\n",
+       "                               ...                        \n",
+       "31957    ate @user isz that youuu?ðððððð...\n",
+       "31958      to see nina turner on the airwaves trying to...\n",
+       "31959    listening to sad songs on a monday morning otw...\n",
+       "31960    @user #sikh #temple vandalised in in #calgary,...\n",
+       "31961                     thank you @user for you follow  \n",
+       "Name: tweet, Length: 31962, dtype: object"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df['tweet']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "98590593",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.015992Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.014269Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.020188Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.019625Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.082984Z"
+    },
+    "id": "INxgPwzmCGwf",
+    "outputId": "a0ba79b4-d5e1-4d0a-b42b-78d9bf6326eb",
+    "papermill": {
+     "duration": 0.023963,
+     "end_time": "2024-07-30T14:33:12.020340",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:11.996377",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0    29720\n",
+       "1     2242\n",
+       "Name: label, dtype: int64"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df['label'].value_counts()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1e7b598c",
+   "metadata": {
+    "id": "9kNjgPVECN4n",
+    "papermill": {
+     "duration": 0.01062,
+     "end_time": "2024-07-30T14:33:12.042086",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.031466",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "#preprocessing the dataset"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "14928099",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.070089Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.069348Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.072188Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.071628Z",
+     "shell.execute_reply.started": "2024-07-30T13:53:11.751542Z"
+    },
+    "id": "HHMvb6iHCSee",
+    "papermill": {
+     "duration": 0.018999,
+     "end_time": "2024-07-30T14:33:12.072335",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.053336",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# removes pattern in the umput text\n",
+    "def remove_pattern(input_txt, pattern):\n",
+    "    r = re.findall(pattern, input_txt)\n",
+    "    for word in r:\n",
+    "        input_txt = re.sub(word, \"\",input_txt)\n",
+    "    return input_txt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "c03f39de",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.161174Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.124874Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.268078Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.267377Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.130631Z"
+    },
+    "id": "AJ7AW-xPCVcI",
+    "outputId": "7835ed6c-1882-4eb4-805a-fcafdd735851",
+    "papermill": {
+     "duration": 0.184897,
+     "end_time": "2024-07-30T14:33:12.268244",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.083347",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>label</th>\n",
+       "      <th>tweet</th>\n",
+       "      <th>clean_tweet</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user when a father is dysfunctional and is s...</td>\n",
+       "      <td>when a father is dysfunctional and is so sel...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user @user thanks for #lyft credit i can't us...</td>\n",
+       "      <td>thanks for #lyft credit i can't use cause th...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>factsguide: society now    #motivation</td>\n",
+       "      <td>factsguide: society now    #motivation</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id  label                                              tweet  \\\n",
+       "0   1      0   @user when a father is dysfunctional and is s...   \n",
+       "1   2      0  @user @user thanks for #lyft credit i can't us...   \n",
+       "2   3      0                                bihday your majesty   \n",
+       "3   4      0  #model   i love u take with u all the time in ...   \n",
+       "4   5      0             factsguide: society now    #motivation   \n",
+       "\n",
+       "                                         clean_tweet  \n",
+       "0    when a father is dysfunctional and is so sel...  \n",
+       "1    thanks for #lyft credit i can't use cause th...  \n",
+       "2                                bihday your majesty  \n",
+       "3  #model   i love u take with u all the time in ...  \n",
+       "4             factsguide: society now    #motivation  "
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#remove twitter handels (@user)\n",
+    "df['clean_tweet'] = np.vectorize(remove_pattern)(df['tweet'],\"@[\\w]*\")\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "4fa9c5ff",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.316569Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.311515Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.490839Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.490226Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.310858Z"
+    },
+    "id": "xhvrhTAtCWpX",
+    "outputId": "a3a8020a-612a-4926-b60d-b36c2fa10cf5",
+    "papermill": {
+     "duration": 0.21136,
+     "end_time": "2024-07-30T14:33:12.491025",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.279665",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>label</th>\n",
+       "      <th>tweet</th>\n",
+       "      <th>clean_tweet</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user when a father is dysfunctional and is s...</td>\n",
+       "      <td>when a father is dysfunctional and is so sel...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user @user thanks for #lyft credit i can't us...</td>\n",
+       "      <td>thanks for #lyft credit i can t use cause th...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>factsguide: society now    #motivation</td>\n",
+       "      <td>factsguide  society now    #motivation</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id  label                                              tweet  \\\n",
+       "0   1      0   @user when a father is dysfunctional and is s...   \n",
+       "1   2      0  @user @user thanks for #lyft credit i can't us...   \n",
+       "2   3      0                                bihday your majesty   \n",
+       "3   4      0  #model   i love u take with u all the time in ...   \n",
+       "4   5      0             factsguide: society now    #motivation   \n",
+       "\n",
+       "                                         clean_tweet  \n",
+       "0    when a father is dysfunctional and is so sel...  \n",
+       "1    thanks for #lyft credit i can t use cause th...  \n",
+       "2                                bihday your majesty  \n",
+       "3  #model   i love u take with u all the time in ...  \n",
+       "4             factsguide  society now    #motivation  "
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# remove special characters , number and punctuations\n",
+    "df['clean_tweet'] = df['clean_tweet'].str.replace(\"[^a-zA-Z#]\", \" \")\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "47f183cf",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.525621Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.519874Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.636266Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.635711Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.513290Z"
+    },
+    "id": "iqaTZIXLCaHH",
+    "outputId": "ee9cc56f-d1f9-4224-a34a-0616d302dc4c",
+    "papermill": {
+     "duration": 0.133315,
+     "end_time": "2024-07-30T14:33:12.636424",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.503109",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>label</th>\n",
+       "      <th>tweet</th>\n",
+       "      <th>clean_tweet</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user when a father is dysfunctional and is s...</td>\n",
+       "      <td>when father dysfunctional selfish drags kids i...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>@user @user thanks for #lyft credit i can't us...</td>\n",
+       "      <td>thanks #lyft credit cause they offer wheelchai...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "      <td>bihday your majesty</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>#model   i love u take with u all the time in ...</td>\n",
+       "      <td>#model love take with time</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>factsguide: society now    #motivation</td>\n",
+       "      <td>factsguide society #motivation</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id  label                                              tweet  \\\n",
+       "0   1      0   @user when a father is dysfunctional and is s...   \n",
+       "1   2      0  @user @user thanks for #lyft credit i can't us...   \n",
+       "2   3      0                                bihday your majesty   \n",
+       "3   4      0  #model   i love u take with u all the time in ...   \n",
+       "4   5      0             factsguide: society now    #motivation   \n",
+       "\n",
+       "                                         clean_tweet  \n",
+       "0  when father dysfunctional selfish drags kids i...  \n",
+       "1  thanks #lyft credit cause they offer wheelchai...  \n",
+       "2                                bihday your majesty  \n",
+       "3                         #model love take with time  \n",
+       "4                     factsguide society #motivation  "
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#remove short words\n",
+    "df['clean_tweet'] = df['clean_tweet'].apply(lambda x: \" \".join([w for w in x.split() if len(w)>3]))\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "08c009a9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-30T14:33:12.710720Z",
+     "iopub.status.busy": "2024-07-30T14:33:12.699351Z",
+     "iopub.status.idle": "2024-07-30T14:33:12.714318Z",
+     "shell.execute_reply": "2024-07-30T14:33:12.713711Z",
+     "shell.execute_reply.started": "2024-07-30T13:50:51.634438Z"
+    },
+    "id": "AiKv2tFiCcu3",
+    "outputId": "90a6c0d1-7d23-4cbf-e190-ce8f18fbdb18",
+    "papermill": {
+     "duration": 0.063818,
+     "end_time": "2024-07-30T14:33:12.714478",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.650660",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0    [when, father, dysfunctional, selfish, drags, ...\n",
+       "1    [thanks, #lyft, credit, cause, they, offer, wh...\n",
+       "2                              [bihday, your, majesty]\n",
+       "3                     [#model, love, take, with, time]\n",
+       "4                   [factsguide, society, #motivation]\n",
+       "Name: clean_tweet, dtype: object"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#individual words considered as tokens\n",
+    "tokenized_tweet = df['clean_tweet'].apply(lambda x : x.split())\n",
+    "tokenized_tweet.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "982d58b0",
+   "metadata": {
+    "id": "pbTxPIBKCk7P",
+    "papermill": {
+     "duration": 0.012332,
+     "end_time": "2024-07-30T14:33:12.739576",
+     "exception": false,
+     "start_time": "2024-07-30T14:33:12.727244",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "#Exploratory Data Analysis"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 1698522,
+     "sourceId": 2782184,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30145,
+   "isGpuEnabled": false,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.10"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 11.814005,
+   "end_time": "2024-07-30T14:33:13.462724",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-07-30T14:33:01.648719",
+   "version": "2.3.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
